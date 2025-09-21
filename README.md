@@ -2,7 +2,7 @@
 
 
 pythonanywhere 
-<!--
-lgoin nmhostserver
+<--
+nmhostserver
 
 -->
