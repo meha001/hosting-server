@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %} Login {% endblock %}
+
+{% block content %}
+{% if not current_user.is_authenticated %}
+    <h1>Login Page</h1> 
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.username }}
+        {{ form.password }}
+        {{ form.submit }}
+    </form>
+    <a href="{{ url_for('register') }}">Don't have an account? Sign Up</a><br>
+{% else %}
+    <a href="{{ url_for('dashboard') }}">My Dashboard</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %} Dashboard {% endblock %}
+
+{% block content %}
+    <h1>Your frontend hosting. Simple and fast.</h1>
+    
+   
+    <div class="user-apps">
+        <h3>Your applications:</h3>
+        {% if not current_user.apps %}
+        <h3>You don't have an application </h3>
+        {% endif %} 
+        {% for app in current_user.apps %}
+            <div class="app-card">
+                <h4>{{ app.app_name }}</h4>
+                <p>Link: <a href="{{ url_for('show_site', site_id=app.app_id) }}" target="_blank">/sites/{{ app.app_id }}</a></p>
+                <!-- Button to delete the entire application -->
+                <form action="{{ url_for('delete_app', app_id=app.app_id) }}" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Delete the entire application?')">🗑️ Delete application</button>
+                </form>
+                
+                <!-- List of files -->
+                <div class="file-list">
+                    <h5>Files:</h5>
+                    {% for file in app.get_files() %}
+                        <div class="file-item">
+                            📄 {{ file }}
+                            <a href="{{ url_for('download_file', app_id=app.app_id, filename=file) }}" download>⬇️</a>
+                            <!-- Button to delete a single file -->
+                            <form action="{{ url_for('delete_file', app_id=app.app_id, filename=file) }}" method="post" style="display:inline;">
+                                <button type="submit" onclick="return confirm('Delete file?')">❌</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- File upload form -->
+                <form action="{{ url_for('upload_files') }}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="app_id" value="{{ app.app_id }}">
+                    <input type="file" name="files[]" multiple>
+                    <button type="submit">➕ Add files</button>
+                </form>
+
+                <!-- Download application as ZIP -->
+                <a href="{{ url_for('download_app', app_id=app.app_id) }}" class="download-btn">
+                    ⬇️ Download ZIP
+                </a>
+                <form action="{{ url_for('delete_app', app_id=app.app_id) }}" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Delete the entire application?')">🗑️ Delete application</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+    <br>
+    <a href="{{ url_for('index') }}" class="btn btn-success">Create a new app</a>
+
+{% endblock %}

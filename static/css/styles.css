@@ -1,0 +1,113 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    line-height: 1.15;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #ffffff;
+}
+
+/* Типография */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-bottom: 0.5em;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 2.5rem;
+    text-align: center;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.75rem;
+}
+
+h4 {
+    font-size: 1.5rem;
+}
+
+h5 {
+    font-size: 1.25rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+a:hover {
+    color: #000000;
+    text-decoration: underline;
+}
+
+
+.btn {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.25rem;
+    background-color: #ff0000;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn:hover {
+    background-color: #000000;
+    transform: translateY(-1px);
+    color:white;
+}
+
+/* Формы */
+input,
+textarea,
+select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+    font-size: 1rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+main{
+    margin-left: 80px;
+}
