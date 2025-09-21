@@ -11,6 +11,19 @@ html {
     -webkit-text-size-adjust: 100%;
 }
 
+div.form
+{
+    display: block;
+    text-align: center;
+}
+form
+{
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
@@ -86,14 +99,16 @@ a:hover {
 .btn:hover {
     background-color: #000000;
     transform: translateY(-1px);
-    color:white;
+    color: white;
 }
 
 /* Формы */
 input,
 textarea,
 select {
-    width: 100%;
+    text-align: center;
+    align-items: center;
+    width: 400px;
     padding: 0.5rem;
     border: 1px solid #ddd;
     border-radius: 0.25rem;
@@ -108,6 +123,6 @@ select:focus {
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-main{
+main {
     margin-left: 80px;
 }

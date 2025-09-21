@@ -6,10 +6,11 @@
     
    
     <div class="user-apps">
-        <h3>Your applications:</h3>
+        
         {% if not current_user.apps %}
         <h3>You don't have an application </h3>
-        {% endif %} 
+        {% else %} 
+        <h3>Your applications:</h3>
         {% for app in current_user.apps %}
             <div class="app-card">
                 <h4>{{ app.app_name }}</h4>
@@ -50,6 +51,7 @@
                 </form>
             </div>
         {% endfor %}
+        {% endif %}
     </div>
     <br>
     <a href="{{ url_for('index') }}" class="btn btn-success">Create a new app</a>

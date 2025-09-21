@@ -103,6 +103,8 @@ def register():
             flash('An error occurred during registration. Please try again.', 'error')
     return render_template('register.html', form=form)
 
+
+
 #-------------------SYSTEM_ZONE---------------------------------------------#
 class CreateApp(FlaskForm):
     NewApp = StringField(validators=[
@@ -149,22 +151,7 @@ def index():
             # Create the folder if it doesn't exist
             os.makedirs(app_path, exist_ok=True)
             # Create a basic index.html
-            basic_html = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>{app_name}</title>
-                <style>
-                    body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; }}
-                    h1 {{ color: #333; }}
-                </style>
-            </head>
-            <body>
-                <h1>Hello! This is your application "{app_name}"</h1>
-                <p>Replace the content of this file with your code!</p>
-            </body>
-            </html>
-            """
+            basic_html = f"""this is you website"""
             # Save index.html
             with open(os.path.join(app_path, 'index.html'), 'w', encoding='utf-8') as f:
                 f.write(basic_html)

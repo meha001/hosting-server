@@ -4,20 +4,21 @@
 {% block content %}
 
 <div class="container">
+    <div class="form"><br>
     <h2>Create a New Application</h2>
     
-    <form method="POST" action="{{ url_for('index') }}">
+    <form method="POST" action="{{ url_for('index') }}" name = 'Form1'>
         {{ form.hidden_tag() }}
         
         <div class="form-group">
-            {{ form.NewApp.label }}
             {{ form.NewApp(class="form-control") }}
             {% for error in form.NewApp.errors %}
-                <span style="color: red;">[{{ error }}]</span>
+                <span style="color: rgb(255, 0, 0);">[{{ error }}]</span>
             {% endfor %}
         </div>
         
         {{ form.submit(class="btn btn-primary") }}
     </form>
+    </div>
 </div>
 {% endblock %}
