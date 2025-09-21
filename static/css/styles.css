@@ -126,3 +126,7 @@ select:focus {
 main {
     margin-left: 80px;
 }
+
+.download-btn{
+    margin-right:10px;
+}
