@@ -12,9 +12,9 @@
         {{ form.submit }}<br>
     </form>
     <br>
-    <a href="{{ url_for('register') }}">Don't have an account? Sign Up</a><br>
+    <a href="{{ url_for('auth.register') }}">Don't have an account? Sign Up</a><br>
 </div>
     {% else %}
-    <a href="{{ url_for('dashboard') }}">My Dashboard</a>
+    <a href="{{ url_for('apps.dashboard') }}">My Dashboard</a>
 {% endif %}
 {% endblock %}
