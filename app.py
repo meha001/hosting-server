@@ -12,7 +12,7 @@ import zipfile
 import io
 from werkzeug.utils import secure_filename
 import shutil
-
+ 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SECRET_KEY'] = 'rkmlkmkklmfmrmgrg'
