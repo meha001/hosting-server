@@ -16,13 +16,7 @@ def show_site(site_id):
 
 
 
-@files_bp.route('/sites/<site_id>/js/<path:filename>')
-def serve_site_js(site_id, filename):
-    app_obj = UserApp.query.filter_by(app_id=site_id).first_or_404()
-    safe_path = safe_join(app_obj.path, 'js', filename)
-    if not safe_path or not os.path.exists(safe_path):
-        return 'File not found', 404
-    return send_from_directory(os.path.join(app_obj.path, 'js'), filename)
+
 
 @files_bp.route('/sites/<site_id>/files/<path:filename>')
 def serve_site_file(site_id, filename):
