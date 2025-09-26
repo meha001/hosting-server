@@ -37,7 +37,7 @@ def index():
             new_app = UserApp(app_id=app_id, app_name=app_name, user_id=current_user.id, path=app_path)
             db.session.add(new_app)
             db.session.commit()
-            flash(f'Application \"{app_name}\" created! Link: /sites/{app_id}', 'success')
+            flash(f'Application \"{app_name}\" created! Link: /sites/{app_id}/', 'success')
             return redirect(url_for('apps.dashboard'))
         except Exception as e:
             db.session.rollback()
