@@ -34,6 +34,16 @@
     {% endif %}
   {% endwith %}
 
+  <!-- Создание папки -->
+  <section class="card create-folder-card">
+    <h4><i class="fas fa-folder-plus"></i> Create Folder</h4>
+    <form action="{{ url_for('apps.create_folder', app_id=app.app_id) }}" method="post">
+      <input type="hidden" name="parent" value="{{ current_path }}">
+      <input type="text" name="folder_name" placeholder="folder name" required>
+      <button class="btn primary" type="submit">➕ Create</button>
+    </form>
+  </section>
+  
   <!-- Файлы -->
   <section class="card files-card">
     <h4><i class="fas fa-folder"></i> Files</h4>
@@ -84,15 +94,6 @@
     </form>
   </section>
 
-  <!-- Создание папки -->
-  <section class="card create-folder-card">
-    <h4><i class="fas fa-folder-plus"></i> Create Folder</h4>
-    <form action="{{ url_for('apps.create_folder', app_id=app.app_id) }}" method="post">
-      <input type="hidden" name="parent" value="{{ current_path }}">
-      <input type="text" name="folder_name" placeholder="folder name" required>
-      <button class="btn primary" type="submit">➕ Create</button>
-    </form>
-  </section>
 
   <!-- Действия -->
   <div class="actions-row">
