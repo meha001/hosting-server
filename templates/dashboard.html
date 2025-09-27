@@ -2,32 +2,63 @@
 {% block title %} Dashboard {% endblock %}
 
 {% block content %}
-<h1>Your frontend hosting. Simple and fast.</h1>
+<div class="dashboard-container">
+  <h1 class="dashboard-title">
+    <i class="fas fa-rocket"></i> Your frontend hosting. Simple and fast.
+  </h1>
 
-<div class="user-apps">
+  <div class="user-apps">
     {% if not current_user.apps %}
-        <h3>You don't have an application</h3>
+      <div class="empty-card">
+        <h3><i class="fas fa-box-open"></i> You don't have an application</h3>
+        <p>Create your first app and publish it in seconds.</p>
+        <a href="{{ url_for('apps.index') }}" class="btn btn-success">
+          <i class="fas fa-plus"></i> Create a new app
+        </a>
+      </div>
     {% else %}
-        <h3>Your applications:</h3>
+      <div class="apps-grid">
         {% for app in current_user.apps %}
-            <div class="app-card">
-                <!-- Название — ссылка на страницу управления этим приложением -->
-                <h4>
-                    <a href="{{ url_for('apps.manage_app', app_id=app.app_id) }}">
-                        {{ app.app_name }}
-                    </a>
-                </h4>
-
-                <!-- Ссылка на опубликованную версию -->
-                <p>Link: <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">/sites/{{ app.app_id }}</a></p>
-
-                <!-- Короткая мета (опционально) -->
-                <p>Files: {{ app.get_files()|length }} &middot; Created: {{ app.created_at.strftime("%Y-%m-%d") if app.created_at else '-' }}</p>
+          <div class="app-card">
+            <div class="app-card-head">
+              <h4 class="app-name">
+                <a href="{{ url_for('apps.manage_app', app_id=app.app_id) }}">
+                  <i class="fas fa-layer-group"></i> {{ app.app_name }}
+                </a>
+              </h4>
+              <div class="app-actions">
+                <a class="btn btn-small" href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">
+                  <i class="fas fa-external-link-alt"></i> Open
+                </a>
+                <a class="btn btn-success" href="{{ url_for('apps.manage_app', app_id=app.app_id) }}">
+                  <i class="fas fa-cogs"></i> Manage
+                </a>
+              </div>
             </div>
-        {% endfor %}
-    {% endif %}
-</div>
 
-<br>
-<a href="{{ url_for('apps.index') }}" class="btn btn-success">Create a new app</a>
+            <p class="app-link">
+              <i class="fas fa-link"></i>
+              <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">
+                /sites/{{ app.app_id }}
+              </a>
+            </p>
+
+            <p class="app-meta">
+              <i class="fas fa-file-alt"></i> Files:
+              <strong>{{ app.get_files()|length }}</strong>
+              · <i class="fas fa-calendar-alt"></i> Created:
+              <strong>{{ app.created_at.strftime("%Y-%m-%d") if app.created_at else '-' }}</strong>
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="controls" style="margin-top:16px;">
+        <a href="{{ url_for('apps.index') }}" class="btn btn-success">
+          <i class="fas fa-plus"></i> Create a new app
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}
