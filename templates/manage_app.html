@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %} Manage {{ app.app_name }} {% endblock %}
+
+{% block content %}
+<h1>Manage: {{ app.app_name }}</h1>
+<p>Site: <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">/sites/{{ app.app_id }}</a></p>
+
+<!-- Список файлов с кнопками скачивания и удаления -->
+<div class="file-list">
+    <h3>Files</h3>
+    {% for file in app.get_files() %}
+        <div class="file-item">
+            📄 {{ file }}
+            <a href="{{ url_for('apps.download_file', app_id=app.app_id, filename=file) }}" download>⬇️</a>
+
+            <form action="{{ url_for('apps.delete_file', app_id=app.app_id, filename=file) }}" method="post" style="display:inline;">
+                <button type="submit" onclick="return confirm('Delete file?')">❌</button>
+            </form>
+        </div>
+    {% else %}
+        <p>No files uploaded yet.</p>
+    {% endfor %}
+</div>
+
+<!-- Загрузка файлов -->
+<form action="{{ url_for('apps.upload_files') }}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="app_id" value="{{ app.app_id }}">
+    <input type="file" name="files[]" multiple>
+    <button type="submit">➕ Add files</button>
+</form>
+
+<!-- Скачать приложение целиком -->
+<p>
+    <a href="{{ url_for('apps.download_app', app_id=app.app_id) }}" class="download-btn">Download ZIP</a>
+</p>
+
+<!-- Удаление приложения -->
+<form action="{{ url_for('apps.delete_app', app_id=app.app_id) }}" method="post" onsubmit="return confirm('Delete the entire application?');">
+    <button type="submit">🗑️ Delete application</button>
+</form>
+
+<p><a href="{{ url_for('apps.index') }}">Back to apps list</a></p>
+{% endblock %}

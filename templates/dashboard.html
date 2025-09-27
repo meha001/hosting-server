@@ -2,60 +2,32 @@
 {% block title %} Dashboard {% endblock %}
 
 {% block content %}
-    <h1>Your frontend hosting. Simple and fast.</h1>
-    
-   
-    <div class="user-apps">
-        
-        {% if not current_user.apps %}
-        <h3>You don't have an application </h3>
-        {% else %} 
+<h1>Your frontend hosting. Simple and fast.</h1>
+
+<div class="user-apps">
+    {% if not current_user.apps %}
+        <h3>You don't have an application</h3>
+    {% else %}
         <h3>Your applications:</h3>
         {% for app in current_user.apps %}
             <div class="app-card">
-                <h4>{{ app.app_name }}</h4>
+                <!-- Название — ссылка на страницу управления этим приложением -->
+                <h4>
+                    <a href="{{ url_for('apps.manage_app', app_id=app.app_id) }}">
+                        {{ app.app_name }}
+                    </a>
+                </h4>
+
+                <!-- Ссылка на опубликованную версию -->
                 <p>Link: <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">/sites/{{ app.app_id }}</a></p>
-                <!-- Button to delete the entire application -->
 
-                
-                <!-- List of files -->
-                <div class="file-list">
-                    <h5>Files:</h5>
-                    {% for file in app.get_files() %}
-                        <div class="file-item">
-                            📄 {{ file }}
-                            <a href="{{ url_for('apps.download_file', app_id=app.app_id, filename=file) }}" download>⬇️</a>
-                            <!-- Button to delete a single file -->
-                            <form action="{{ url_for('apps.delete_file', app_id=app.app_id, filename=file) }}" method="post" style="display:inline;">
-                                <button type="submit" onclick="return confirm('Delete file?')">❌</button>
-                            </form>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <!-- File upload form -->
-                <form action="{{ url_for('apps.upload_files') }}" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="app_id" value="{{ app.app_id }}">
-                    <input type="file" name="files[]" multiple>
-                    <button type="submit">➕ Add files</button>
-                </form>
-                <br><br> 
-
-                <!-- Download application as ZIP -->
-                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
-                </svg>
-                    <a href="{{ url_for('apps.download_app', app_id=app.app_id) }}" class="download-btn">Download ZIP</a>
-                <!-- Button to delete the entire application -->
-
-                <form action="{{ url_for('apps.delete_app', app_id=app.app_id) }}" method="post" style="display:inline;">
-                    <button type="submit" onclick="return confirm('Delete the entire application?')">🗑️ Delete application</button>
-                </form>
+                <!-- Короткая мета (опционально) -->
+                <p>Files: {{ app.get_files()|length }} &middot; Created: {{ app.created_at.strftime("%Y-%m-%d") if app.created_at else '-' }}</p>
             </div>
         {% endfor %}
-        {% endif %}
-    </div>
-    <br>
-    <a href="{{ url_for('apps.index') }}" class="btn btn-success">Create a new app</a>
+    {% endif %}
+</div>
 
+<br>
+<a href="{{ url_for('apps.index') }}" class="btn btn-success">Create a new app</a>
 {% endblock %}
