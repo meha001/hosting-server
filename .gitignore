@@ -6,6 +6,7 @@ instance/
 migrations/
 
 
+
 # Python
 __pycache__/
 *.py[cod]
