@@ -14,7 +14,7 @@
         {% for app in current_user.apps %}
             <div class="app-card">
                 <h4>{{ app.app_name }}</h4>
-                <p>Link: <a href="{{ url_for('files.show_site', site_id=app.app_id) }}" target="_blank">/sites/{{ app.app_id }}</a></p>
+                <p>Link: <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">/sites/{{ app.app_id }}</a></p>
                 <!-- Button to delete the entire application -->
 
                 

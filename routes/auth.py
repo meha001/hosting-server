@@ -16,7 +16,7 @@ def home():
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
-        # проверяем, есть ли уже такой юзер
+        
         existing_user = User.query.filter_by(username=form.username.data).first()
         if existing_user:
             flash("That username already exists. Please choose a different one.", "error")
@@ -27,7 +27,7 @@ def register():
         try:
             db.session.add(new_user)
             db.session.commit()
-            login_user(new_user)  # сразу авторизуем
+            login_user(new_user)  
             flash("Registration successful! You are now logged in.", "success")
             return redirect(url_for('apps.dashboard'))
         except Exception:
