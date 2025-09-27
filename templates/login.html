@@ -2,19 +2,29 @@
 {% block title %} Login {% endblock %}
 
 {% block content %}
-{% if not current_user.is_authenticated %}
-    <div class="form">
-    <h1>Login Page</h1> 
-    <form name="Form1" action="" method="POST">
-        {{ form.hidden_tag() }}<br>
-        {{ form.username }}<br>
-        {{ form.password }}<br>
-        {{ form.submit }}<br>
+
+<h1>Login Page</h1>
+
+
+
+<div class="form-container">
+    <form action="" method="POST">
+        {{ form.hidden_tag() }}
+
+        {{ form.username(class="input", placeholder="Username") }}<br><br>
+        {{ form.password(class="input", placeholder="Password") }}<br><br>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+        {{ form.submit(class="btn") }}
     </form>
-    <br>
-    <a href="{{ url_for('auth.register') }}">Don't have an account? Sign Up</a><br>
+    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
 </div>
-    {% else %}
-    <a href="{{ url_for('apps.dashboard') }}">My Dashboard</a>
-{% endif %}
+
 {% endblock %}
