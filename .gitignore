@@ -1,3 +1,11 @@
+# Базы данных
+*.db
+*.sqlite
+*.sqlite3
+instance/
+migrations/
+
+
 # Python
 __pycache__/
 *.py[cod]
