@@ -106,7 +106,11 @@
       <button class="btn danger" type="submit">
         <i class="fas fa-trash-alt"></i> Delete application
       </button>
+      
     </form>
+    <a href="{{ url_for('apps.manage_app', app_id=app.app_id) }}">
+    <i class="fas fa-cogs"></i> Manage
+        </a>
   </div>
 
   <p class="back">
