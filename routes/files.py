@@ -17,9 +17,7 @@ def serve_site(site_id, filename='index.html'):
     response = make_response(send_from_directory(app_obj.path, filename))
     
     # Кэшировать CSS/JS/изображения на 1 час
-    if '.' in filename:
-        file_extension = filename.split('.')[-1].lower()
-        if file_extension in ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'ico', 'svg', 'woff', 'woff2', 'ttf']:
-            response.headers['Cache-Control'] = 'public, max-age=3600'
+    
     
     return response
+

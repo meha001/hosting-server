@@ -1,7 +1,12 @@
+from collections import namedtuple
 from extensions import db
 from flask_login import UserMixin
 from datetime import timezone, datetime
 import os
+
+
+
+FileNode = namedtuple('FileNode', ['name', 'is_dir', 'children'])
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,3 +32,27 @@ class UserApp(db.Model):
             return []
         except Exception:
             return []
+    
+    def get_files_tree(self, relative_path=""):
+        base_path = os.path.join(self.path, relative_path)
+        if not os.path.exists(base_path):
+            return []
+
+        def build_tree(path):
+            items = []
+            for name in sorted(os.listdir(path)):
+                full_path = os.path.join(path, name)
+                if os.path.isdir(full_path):
+                    items.append({
+                        "name": name,
+                        "is_dir": True,
+                        "children": build_tree(full_path)
+                    })
+                else:
+                    items.append({
+                        "name": name,
+                        "is_dir": False
+                    })
+            return items
+
+        return build_tree(base_path)

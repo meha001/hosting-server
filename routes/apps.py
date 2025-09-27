@@ -3,11 +3,16 @@ from flask_login import login_required, current_user
 from forms import CreateApp
 from extensions import db
 from models import UserApp
-import uuid, os, zipfile, io, shutil
+import uuid, os, zipfile, io
 from werkzeug.utils import secure_filename
-
+import shutil
+import re
 apps_bp = Blueprint('apps', __name__, url_prefix='')
 
+
+# -------------------------
+# DASHBOARD
+# -------------------------
 @apps_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -15,13 +20,23 @@ def dashboard():
     return render_template('dashboard.html', username=current_user.username, form=form)
 
 
+# -------------------------
+# API: список приложений
+# -------------------------
 @apps_bp.route('/api/apps', methods=['GET'])
 @login_required
 def api_list_apps():
     apps = UserApp.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{'app_id': a.app_id, 'app_name': a.app_name, 'created_at': a.created_at.isoformat()} for a in apps])
+    return jsonify([{
+        'app_id': a.app_id,
+        'app_name': a.app_name,
+        'created_at': a.created_at.isoformat()
+    } for a in apps])
 
 
+# -------------------------
+# СОЗДАНИЕ ПРИЛОЖЕНИЯ
+# -------------------------
 @apps_bp.route('/index', methods=['POST', 'GET'])
 @login_required
 def index():
@@ -32,108 +47,92 @@ def index():
             app_id = str(uuid.uuid4())[:8]
             app_path = os.path.join(current_app.config['UPLOAD_FOLDER'], app_id)
             os.makedirs(app_path, exist_ok=True)
-            basic_html = "this is you website"
+
+            # создаём базовый index.html
             with open(os.path.join(app_path, 'index.html'), 'w', encoding='utf-8') as f:
-                f.write(basic_html)
-            new_app = UserApp(app_id=app_id, app_name=app_name, user_id=current_user.id, path=app_path)
+                f.write("this is your website")
+
+            # сохраняем в БД
+            new_app = UserApp(app_id=app_id, app_name=app_name,
+                              user_id=current_user.id, path=app_path)
             db.session.add(new_app)
             db.session.commit()
-            flash(f'Application \"{app_name}\" created! Link: /sites/{app_id}/', 'success')
+
+            flash(f'Application "{app_name}" created! Link: /sites/{app_id}/', 'success')
             return redirect(url_for('apps.dashboard'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error creating application: {e}', 'error')
+
     return render_template('create_app.html', form=form, username=current_user.username)
 
 
-@apps_bp.route('/manage/<app_id>')
+# -------------------------
+# СОЗДАНИЕ ПАПКИ
+# -------------------------
+@apps_bp.route('/create/folder/<app_id>', methods=['POST'])
 @login_required
-def manage_app(app_id):
+def create_folder(app_id):
     app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
-    return render_template('manage_app.html', app=app_obj, username=current_user.username)
+    parent = request.form.get("parent", "")
+    folder_name = request.form.get("folder_name", "").strip()
+
+    #  Проверка на пустое имя или запрещённые символы
+    if not folder_name or not re.match(r'^[a-zA-Z0-9_\- ]+$', folder_name):
+        flash("Invalid folder name! Use only letters, numbers, spaces, '-' and '_'.", "error")
+        return redirect(url_for("apps.manage_app", app_id=app_id, path=parent))
 
 
+    folder_path = os.path.join(app_obj.path, parent, folder_name)
+
+    try:
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            flash(f'Folder "{folder_name}" created successfully!', 'success')
+        else:
+            flash(f'Folder "{folder_name}" already exists.', 'warning')
+    except Exception as e:
+        flash(f'Error creating folder: {e}', 'error')
+
+    return redirect(url_for("apps.manage_app", app_id=app_id, path=parent))
+
+
+# -------------------------
+# ЗАГРУЗКА ФАЙЛОВ
+# -------------------------
 @apps_bp.route('/upload', methods=['POST'])
 @login_required
 def upload_files():
     if 'files[]' not in request.files:
         flash('No files selected', 'error')
-        return redirect(url_for('apps.dashboard'))
+        return redirect(url_for('apps.manage_app', app_id=request.form.get('app_id')))
+
     files = request.files.getlist('files[]')
     app_id = request.form.get('app_id')
-    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
-    if not app_obj:
-        flash('Application not found', 'error')
-        return redirect(url_for('apps.dashboard'))
+    current_path = request.form.get("path", "")
+
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
+    upload_path = os.path.join(app_obj.path, current_path)
+    os.makedirs(upload_path, exist_ok=True)
+
     for file in files:
         if file and file.filename:
             filename = secure_filename(file.filename)
-            dst = os.path.join(app_obj.path, filename)
-            file.save(dst)
+            dst_path = os.path.join(upload_path, filename)
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            file.save(dst_path)
+
     flash('Files uploaded successfully', 'success')
-    return redirect(url_for('apps.manage_app', app_id=app_id))
+    return redirect(url_for('apps.manage_app', app_id=app_id, path=current_path))
 
 
-@apps_bp.route('/download/<app_id>')
-@login_required
-def download_app(app_id):
-    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
-    if not app_obj:
-        flash('Application not found', 'error')
-        return redirect(url_for('apps.dashboard'))
-    memory_file = io.BytesIO()
-    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for root, dirs, files in os.walk(app_obj.path):
-            for file in files:
-                file_path = os.path.join(root, file)
-                zf.write(file_path, os.path.relpath(file_path, app_obj.path))
-    memory_file.seek(0)
-    return send_file(memory_file, download_name=f'{app_obj.app_name}.zip', as_attachment=True, mimetype='application/zip')
-
-
-
-@apps_bp.route('/download/<app_id>/<path:filename>')
-@login_required
-def download_file(app_id, filename):
-    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
-    if not app_obj:
-        flash('Application not found', 'error')
-        return redirect(url_for('apps.dashboard'))
-    file_path = os.path.join(app_obj.path, filename)
-    if not os.path.exists(file_path):
-        flash('File not found', 'error')
-        return redirect(url_for('apps.dashboard'))
-    return send_file(file_path, as_attachment=True)
-
-
-
-@apps_bp.route('/delete/app/<app_id>', methods=['POST'])
-@login_required
-def delete_app(app_id):
-    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
-    if not app_obj:
-        flash('Application not found', 'error')
-        return redirect(url_for('apps.dashboard'))
-    try:
-        if os.path.exists(app_obj.path):
-            shutil.rmtree(app_obj.path)
-        db.session.delete(app_obj)
-        db.session.commit()
-        flash('Application deleted', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting: {e}', 'error')
-    return redirect(url_for('apps.dashboard'))
-
-
-
+# -------------------------
+# УДАЛЕНИЕ ФАЙЛА
+# -------------------------
 @apps_bp.route('/delete/file/<app_id>/<path:filename>', methods=['POST'])
 @login_required
-def delete_file(app_id, filename):
-    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
-    if not app_obj:
-        flash('Application not found', 'error')
-        return redirect(url_for('apps.manage_app'))
+def delete_file_route(app_id, filename):
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
     file_path = os.path.join(app_obj.path, filename)
     try:
         if os.path.exists(file_path):
@@ -143,4 +142,112 @@ def delete_file(app_id, filename):
             flash('File not found', 'error')
     except Exception as e:
         flash(f'Error deleting: {e}', 'error')
+    return redirect(url_for('apps.manage_app', app_id=app_id))
+
+
+# -------------------------
+# МЕНЕДЖЕР ПРИЛОЖЕНИЯ
+# -------------------------
+@apps_bp.route('/manage/<app_id>')
+@login_required
+def manage_app(app_id):
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
+
+    current_path = request.args.get("path", "")
+    files_tree = app_obj.get_files_tree(current_path)
+
+    return render_template(
+        "manage_app.html",
+        app=app_obj,
+        username=current_user.username,
+        current_path=current_path,
+        files_tree=files_tree
+    )
+
+
+# -------------------------
+# СКАЧАТЬ ВСЁ ПРИЛОЖЕНИЕ ZIP
+# -------------------------
+@apps_bp.route('/download/<app_id>')
+@login_required
+def download_app(app_id):
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
+    if not app_obj:
+        flash('Application not found', 'error')
+        return redirect(url_for('apps.dashboard'))
+
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(app_obj.path):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zf.write(file_path, os.path.relpath(file_path, app_obj.path))
+    memory_file.seek(0)
+
+    return send_file(memory_file,
+                     download_name=f'{app_obj.app_name}.zip',
+                     as_attachment=True,
+                     mimetype='application/zip')
+
+
+# -------------------------
+# СКАЧАТЬ ОТДЕЛЬНЫЙ ФАЙЛ
+# -------------------------
+@apps_bp.route('/download/<app_id>/<path:filename>')
+@login_required
+def download_file(app_id, filename):
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first()
+    if not app_obj:
+        flash('Application not found', 'error')
+        return redirect(url_for('apps.dashboard'))
+
+    file_path = os.path.join(app_obj.path, filename)
+    if not os.path.exists(file_path):
+        flash('File not found', 'error')
+        return redirect(url_for('apps.dashboard'))
+
+    return send_file(file_path, as_attachment=True)
+
+# -------------------------
+# УДАЛЕНИЕ ПРИЛОЖЕНИЕ
+# -------------------------
+@apps_bp.route('/delete/app/<app_id>', methods=['POST'])
+@login_required
+def delete_app(app_id):
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
+
+    try:
+        # удалить папку сайта
+        if os.path.exists(app_obj.path):
+            
+            shutil.rmtree(app_obj.path)
+
+        # удалить из базы
+        db.session.delete(app_obj)
+        db.session.commit()
+
+        flash(f'Application "{app_obj.app_name}" deleted', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting application: {e}', 'error')
+
+    return redirect(url_for('apps.dashboard'))
+
+
+# -------------------------
+# УДАЛЕНИЕ ПАПОК
+# -------------------------
+@apps_bp.route('/delete/folder/<app_id>/<path:foldername>', methods=['POST'])
+@login_required
+def delete_folder(app_id, foldername):
+    app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
+    folder_path = os.path.join(app_obj.path, foldername)
+    try:
+        if os.path.exists(folder_path) and os.path.isdir(folder_path):
+            shutil.rmtree(folder_path)
+            flash('Folder deleted successfully', 'success')
+        else:
+            flash('Folder not found', 'error')
+    except Exception as e:
+        flash(f'Error deleting folder: {e}', 'error')
     return redirect(url_for('apps.manage_app', app_id=app_id))
