@@ -58,7 +58,7 @@ a:hover { color: #000; text-decoration: underline; }
 .btn:hover { background-color: #000; transform: translateY(-1px); color: #fff; }
 
 .btn.small,
-.btn.btn-small { padding: .25rem .5rem; font-size: .85rem; }
+.btn.btn-small { padding: .25rem .5rem; font-size: .85rem; color: #fff; }
 
 /* Button modifiers */
 .btn.primary { background-color: #007bff; color:#fff; border-color: transparent; }
@@ -190,5 +190,4 @@ input[type="file"] { width: auto; }
 .btn.small { font-size: 12px; padding: 2px 6px; }
 .btn.primary { background: #007bff; color: #fff; }
 .btn.success { background: #28a745; color: #fff; }
-.btn.danger  { background: #dc3545; color: #fff; }
 .btn:hover { opacity: 0.9; }

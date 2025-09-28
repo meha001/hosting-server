@@ -129,20 +129,40 @@ def upload_files():
 # -------------------------
 # УДАЛЕНИЕ ФАЙЛА
 # -------------------------
-@apps_bp.route('/delete/file/<app_id>/<path:filename>', methods=['POST'])
+@apps_bp.route('/delete/file/<app_id>', methods=['POST'])
 @login_required
-def delete_file_route(app_id, filename):
+def delete_file_route(app_id):
     app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
-    file_path = os.path.join(app_obj.path, filename)
+    
+    filename = request.form.get('filename', '').strip()  # только имя файла
+    current_path = request.form.get('current_path', '')   # путь из URL, например css/
+
+    if not filename:
+        flash("No filename provided", "error")
+        return redirect(url_for('apps.manage_app', app_id=app_id, path=current_path))
+
+    # Полный путь к файлу
+    file_path_abs = os.path.abspath(os.path.join(app_obj.path, current_path, filename))
+    app_root = os.path.abspath(app_obj.path)
+
+    # безопасность
+    if not file_path_abs.startswith(app_root + os.sep):
+        flash("Invalid file path", "error")
+        return redirect(url_for('apps.manage_app', app_id=app_id, path=current_path))
+
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            flash('File deleted', 'success')
+        if os.path.isfile(file_path_abs):
+            os.remove(file_path_abs)
+            flash("File deleted", "success")
         else:
-            flash('File not found', 'error')
+            flash("File not found", "error")
     except Exception as e:
-        flash(f'Error deleting: {e}', 'error')
-    return redirect(url_for('apps.manage_app', app_id=app_id))
+        current_app.logger.exception("Error deleting file")
+        flash(f"Error deleting file: {e}", "error")
+
+    # остаёмся в текущей папке
+    return redirect(url_for("apps.manage_app", app_id=app_id, path=current_path))
+
 
 
 # -------------------------
@@ -235,19 +255,37 @@ def delete_app(app_id):
 
 
 # -------------------------
-# УДАЛЕНИЕ ПАПОК
+# УДАЛЕНИЕ ПАПКИ
 # -------------------------
-@apps_bp.route('/delete/folder/<app_id>/<path:foldername>', methods=['POST'])
+@apps_bp.route('/delete/folder/<app_id>', methods=['POST'])
 @login_required
-def delete_folder(app_id, foldername):
+def delete_folder(app_id):
     app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
-    folder_path = os.path.join(app_obj.path, foldername)
+    
+    foldername = (request.form.get('foldername') or "").strip().lstrip('/')
+    current_path = request.form.get('current_path', '')
+
+    if not foldername:
+        flash("No folder name provided", "error")
+        return redirect(url_for('apps.manage_app', app_id=app_id, path=current_path))
+
+    folder_path = os.path.normpath(os.path.join(app_obj.path, foldername))
+    app_root = os.path.abspath(app_obj.path)
+    folder_path_abs = os.path.abspath(folder_path)
+
+    # безопасность
+    if not (folder_path_abs == app_root or folder_path_abs.startswith(app_root + os.sep)):
+        flash("Invalid folder path", "error")
+        return redirect(url_for('apps.manage_app', app_id=app_id, path=current_path))
+
     try:
-        if os.path.exists(folder_path) and os.path.isdir(folder_path):
-            shutil.rmtree(folder_path)
-            flash('Folder deleted successfully', 'success')
+        if os.path.isdir(folder_path_abs):
+            shutil.rmtree(folder_path_abs)
+            flash("Folder deleted successfully", "success")
         else:
-            flash('Folder not found', 'error')
+            flash("Folder not found", "error")
     except Exception as e:
-        flash(f'Error deleting folder: {e}', 'error')
-    return redirect(url_for('apps.manage_app', app_id=app_id))
+        current_app.logger.exception("Error deleting folder")
+        flash(f"Error deleting folder: {e}", "error")
+
+    return redirect(url_for('apps.manage_app', app_id=app_id, path=current_path))
