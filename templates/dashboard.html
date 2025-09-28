@@ -53,11 +53,24 @@
         {% endfor %}
       </div>
 
-      <div class="controls" style="margin-top:16px;">
+      {% if apps|length < 5 %}
+        <div class="controls" style="margin-top:16px;">
+          <a href="{{ url_for('apps.index') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> Create a new app
+          </a>
+        </div>
+      {% else %}
+        <p class="text-danger" style="margin-top:16px;">
+          🚫 You already have 5 applications (limit reached).
+        </p>
+      {% endif %}
+
+
+      <!-- <div class="controls" style="margin-top:16px;">
         <a href="{{ url_for('apps.index') }}" class="btn btn-success">
           <i class="fas fa-plus"></i> Create a new app
         </a>
-      </div>
+      </div> -->
     {% endif %}
   </div>
 </div>

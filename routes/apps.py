@@ -17,9 +17,13 @@ apps_bp = Blueprint('apps', __name__, url_prefix='')
 @login_required
 def dashboard():
     form = CreateApp()
-    return render_template('dashboard.html', username=current_user.username, form=form)
-
-
+    apps = UserApp.query.filter_by(user_id=current_user.id).all()
+    return render_template('dashboard.html',
+                           username=current_user.username,
+                           form=form,
+                           apps=apps)
+    
+    
 # -------------------------
 # API: список приложений
 # -------------------------
@@ -41,6 +45,7 @@ def api_list_apps():
 @login_required
 def index():
     form = CreateApp()
+   
     if form.validate_on_submit():
         app_name = form.NewApp.data
         try:
@@ -76,7 +81,13 @@ def create_folder(app_id):
     app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
     parent = request.form.get("parent", "")
     folder_name = request.form.get("folder_name", "").strip()
-
+    
+    # Проверка глубины вложенности (макс 5 уровней)
+    depth = len([p for p in parent.split("/") if p])
+    if depth >= 5:
+        flash("Folder nesting limit exceeded (max 5 levels)", "error")
+        return redirect(url_for("apps.manage_app", app_id=app_id, path=parent))
+    
     #  Проверка на пустое имя или запрещённые символы
     if not folder_name or not re.match(r'^[a-zA-Z0-9_\- ]+$', folder_name):
         flash("Invalid folder name! Use only letters, numbers, spaces, '-' and '_'.", "error")
@@ -111,9 +122,29 @@ def upload_files():
     app_id = request.form.get('app_id')
     current_path = request.form.get("path", "")
 
+    # получаем объект приложения сначала!
     app_obj = UserApp.query.filter_by(app_id=app_id, user_id=current_user.id).first_or_404()
     upload_path = os.path.join(app_obj.path, current_path)
     os.makedirs(upload_path, exist_ok=True)
+
+    # ---- проверка лимита 100 МБ ----
+    MAX_SIZE = 100 * 1024 * 1024  # 100 MB
+
+    def get_folder_size(path):
+        total = 0
+        for dirpath, dirnames, filenames in os.walk(path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                if os.path.isfile(fp):
+                    total += os.path.getsize(fp)
+        return total
+
+    current_size = get_folder_size(app_obj.path)
+    upload_size = sum(f.content_length or 0 for f in files if f)
+    if current_size + upload_size > MAX_SIZE:
+        flash("Storage limit exceeded (100 MB)", "error")
+        return redirect(url_for("apps.manage_app", app_id=app_id, path=current_path))
+    # ---------------------------------
 
     for file in files:
         if file and file.filename:
