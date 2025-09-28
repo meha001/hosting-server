@@ -1,27 +1,28 @@
 {% extends "base.html" %}
-{% block title %} Manage {{ app.app_name }} {% endblock %}
+
+{% block title %}Manage {{ app.app_name }}{% endblock %}
 
 {% block content %}
 <div class="manage-container">
-  <h2><i class="fas fa-cogs"></i> Manage: {{ app.app_name }}</h2>
+  <div class="header-section">
+    <h2><i class="fas fa-cogs"></i> Manage: {{ app.app_name }}</h2>
+    
+    <div class="site-info">
+      <i class="fas fa-globe"></i>
+      <span class="label">Site:
+      <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank" class="site-link">
+        /sites/{{ app.app_id }}
+      </a>
+      </span>
+    </div>
+  </div>
 
-  <p class="site-link">
-    <i class="fas fa-globe"></i> Site:
-    <a href="{{ url_for('files.serve_site', site_id=app.app_id) }}" target="_blank">
-      /sites/{{ app.app_id }}
-    </a>
-  </p>
-
-  <!-- Сообщения -->
+  <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div class="flash-messages">
         {% for category, message in messages %}
-          <div class="alert 
-            {% if category == 'success' %}alert-success
-            {% elif category == 'error' %}alert-danger
-            {% elif category == 'warning' %}alert-warning
-            {% else %}alert-info{% endif %}">
+          <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
             <i class="fas 
               {% if category == 'success' %}fa-check-circle
               {% elif category == 'error' %}fa-times-circle
@@ -34,88 +35,133 @@
     {% endif %}
   {% endwith %}
 
-  <!-- Создание папки -->
-  <section class="card create-folder-card">
-    <h4><i class="fas fa-folder-plus"></i> Create Folder</h4>
-    <form action="{{ url_for('apps.create_folder', app_id=app.app_id) }}" method="post">
-      <input type="hidden" name="parent" value="{{ current_path }}">
-      <input type="text" name="folder_name" placeholder="folder name" required>
-      <button style="padding:0;border:none;background:none;cursor:pointer;" class="bi bi-plus-circle-fill" type="submit">
-        Create
-      </button>
-    </form>
-  </section>
+  <!-- Actions Grid -->
+  <div class="actions-grid">
+    <!-- Create Folder -->
+    <section class="card action-card">
+      <div class="card-header">
+        <i class="fas fa-folder-plus"></i>
+        <h4>Create Folder</h4>
+      </div>
+      <form action="{{ url_for('apps.create_folder', app_id=app.app_id) }}" method="post" class="folder-form">
+        <input type="hidden" name="parent" value="{{ current_path }}">
+        <div class="input-group">
+          <input type="text" name="folder_name" placeholder="Enter folder name" required class="form-input">
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create
+          </button>
+        </div>
+      </form>
+    </section>
 
-  <!-- Файлы и папки -->
-  <section class="card files-card">
-  <h4><i class="fas fa-folder"></i> Files</h4>
-  <div class="file-list">
-    <ul>
-      {% for file in files_tree %}
-        {% if file.is_dir %}
-          <li>
-            📁 <a href="{{ url_for('apps.manage_app', app_id=app.app_id, path=current_path ~ file.name ~ '/') }}">
-              {{ file.name }}
-            </a>
-
-            <form action="{{ url_for('apps.delete_folder', app_id=app.app_id) }}" method="post" style="display:inline;">
-              <input type="hidden" name="foldername" value="{{ current_path ~ file.name }}">
-              <input type="hidden" name="current_path" value="{{ current_path }}">
-              <button type="submit" onclick="return confirm('Delete folder and all its content?')">🗑</button>
-            </form>
-          </li>
-        {% else %}
-          <li>
-            📄 {{ file.name }}
-
-            <form action="{{ url_for('apps.delete_file_route', app_id=app.app_id) }}" method="post" style="display:inline;">
-              <input type="hidden" name="filename" value="{{ file.name }}">
-              <input type="hidden" name="current_path" value="{{ current_path }}">
-              <button type="submit" onclick="return confirm('Delete file?')">🗑</button>
-            </form>
-
-            <a href="{{ url_for('apps.download_file', app_id=app.app_id, filename=current_path ~ file.name) }}">⬇</a>
-          </li>
-        {% endif %}
-      {% endfor %}
-    </ul>
-  </div>
-</section>
-
-
-  <!-- Загрузка файлов -->
-  <section class="card upload-card">
-    <h4><i class="fas fa-upload"></i> Upload Files</h4>
-    <form action="{{ url_for('apps.upload_files') }}" method="post" enctype="multipart/form-data">
-      <input type="hidden" name="app_id" value="{{ app.app_id }}">
-      <input type="hidden" name="path" value="{{ current_path }}">
-      <input type="file" name="files[]" multiple>
-      <button class="btn primary" type="submit">
-        <i class="fas fa-plus"></i> Upload
-      </button>
-    </form>
-  </section>
-
-  <!-- Действия -->
-  <div class="actions-row">
-    <a href="{{ url_for('apps.download_app', app_id=app.app_id) }}" class="btn success">
-      <i class="fas fa-file-archive"></i> Download ZIP
-    </a>
-    <form action="{{ url_for('apps.delete_app', app_id=app.app_id) }}" method="post" onsubmit="return confirm('Delete the entire application?');" style="display:inline;">
-      <button class="btn danger" type="submit">
-        <i class="fas fa-trash-alt"></i> Delete application
-      </button>
-    </form>
-    <a class = 'btn btn-success' href="{{ url_for('apps.manage_app', app_id=app.app_id) }}">
-  <i class="fas fa-cogs"></i> Manage {{ '/' ~ current_path if current_path else '' }}
-</a>
-
+    <!-- Upload Files -->
+    <section class="card action-card">
+      <div class="card-header">
+        <i class="fas fa-upload"></i>
+        <h4>Upload Files</h4>
+      </div>
+      <form action="{{ url_for('apps.upload_files') }}" method="post" enctype="multipart/form-data" class="upload-form">
+        <input type="hidden" name="app_id" value="{{ app.app_id }}">
+        <input type="hidden" name="path" value="{{ current_path }}">
+        <div class="file-input-wrapper">
+          <input type="file" name="files[]" multiple class="file-input">
+        </div>
+        <button type="submit" class="btn btn-primary full-width">
+          <i class="fas fa-cloud-upload-alt"></i> Upload Files
+        </button>
+      </form>
+    </section>
   </div>
 
-  <p class="back">
-    <a href="{{ url_for('apps.dashboard') }}">
-      <i class="fas fa-arrow-left"></i> Back to apps list
+  <!-- Files List -->
+  <section class="card files-section">
+    <div class="section-header">
+      <i class="fas fa-folder"></i>
+      <h4>Files in {{ current_path if current_path else 'root' }}</h4>
+    </div>
+    
+    <div class="file-list">
+      {% if files_tree %}
+        <ul class="file-items">
+          {% for file in files_tree %}
+            <li class="file-item {% if file.is_dir %}folder{% else %}file{% endif %}">
+              <div class="file-info">
+                <i class="fas {% if file.is_dir %}fa-folder{% else %}fa-file{% endif %}"></i>
+                <span class="file-name">
+                  {% if file.is_dir %}
+                    <a href="{{ url_for('apps.manage_app', app_id=app.app_id, path=current_path ~ file.name ~ '/') }}">
+                      {{ file.name }}
+                    </a>
+                  {% else %}
+                    {{ file.name }}
+                  {% endif %}
+                </span>
+              </div>
+              
+              <div class="file-actions">
+                {% if file.is_dir %}
+                  <form action="{{ url_for('apps.delete_folder', app_id=app.app_id) }}" method="post" class="inline-form">
+                    <input type="hidden" name="foldername" value="{{ current_path ~ file.name }}">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <button type="submit" class="btn btn-danger btn-sm" 
+                            onclick="return confirm('Delete folder and all its content?')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                {% else %}
+                  <a href="{{ url_for('apps.download_file', app_id=app.app_id, filename=current_path ~ file.name) }}" 
+                     class="btn btn-success btn-sm" title="Download">
+                    <i class="fas fa-download"></i>
+                  </a>
+                  <form action="{{ url_for('apps.delete_file_route', app_id=app.app_id) }}" method="post" class="inline-form">
+                    <input type="hidden" name="filename" value="{{ file.name }}">
+                    <input type="hidden" name="current_path" value="{{ current_path }}">
+                    <button type="submit" class="btn btn-danger btn-sm" 
+                            onclick="return confirm('Delete this file?')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <i class="fas fa-folder-open"></i>
+          <p>No files in this directory</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Global Actions -->
+  <div class="global-actions">
+    <a href="{{ url_for('apps.download_app', app_id=app.app_id) }}" class="btn btn-success">
+      <i class="fas fa-file-archive"></i> Download as ZIP
     </a>
-  </p>
+    
+    <a href="{{ url_for('apps.manage_app', app_id=app.app_id) }}" class="btn btn-secondary">
+      <i class="fas fa-home"></i> Root Directory
+    </a>
+    
+    <form action="{{ url_for('apps.delete_app', app_id=app.app_id) }}" method="post" class="inline-form">
+      <button type="submit" class="btn btn-danger" 
+              onclick="return confirm('Are you sure you want to delete the entire application? This action cannot be undone.')">
+        <i class="fas fa-trash-alt"></i> Delete Application
+      </button>
+    </form>
+  </div>
+
+  <!-- Back Navigation -->
+  <div class="back-navigation">
+    <a href="{{ url_for('apps.dashboard') }}" class="back-link">
+      <i class="fas fa-arrow-left"></i> Back to Apps List
+    </a>
+  </div>
 </div>
+
+<style>
+
+</style>
 {% endblock %}

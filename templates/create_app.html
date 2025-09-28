@@ -2,23 +2,22 @@
 {% block title %} Create App {% endblock %}
 
 {% block content %}
-
-<div class="container">
-    <div class="form"><br>
-    <h2>Create a New Application</h2>
+<div class="container py-5">
+  <div class="card shadow-sm p-4 mx-auto" style="max-width: 500px;">
+    <h2 class="mb-4 text-center fw-semibold">Create a New Application</h2>
     
-    <form method="POST" action="{{ url_for('apps.index') }}" name = 'Form1'>
-        {{ form.hidden_tag() }}
-        
-        <div class="form-group">
-            {{ form.NewApp(class="form-control") }}
-            {% for error in form.NewApp.errors %}
-                <span style="color: rgb(255, 0, 0);">[{{ error }}]</span>
-            {% endfor %}
-        </div>
-        
-        {{ form.submit(class="btn btn-primary") }}
+    <form method="POST" action="{{ url_for('apps.index') }}" name="Form1">
+      {{ form.hidden_tag() }}
+      
+      <div class="form-group mb-3">
+        {{ form.NewApp(class="form-control form-control-lg") }}
+        {% for error in form.NewApp.errors %}
+          <div class="text-danger small mt-1">[{{ error }}]</div>
+        {% endfor %}
+      </div>
+      
+      {{ form.submit(class="btn btn-primary w-100") }}
     </form>
-    </div>
+  </div>
 </div>
 {% endblock %}
