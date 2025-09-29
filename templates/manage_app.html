@@ -21,7 +21,7 @@
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <div class="flash-messages">
-        {% for category, message in messages %}
+        {% set category, message = messages[-1] %}
           <div class="alert alert-{{ 'danger' if category == 'error' else category }}">
             <i class="fas 
               {% if category == 'success' %}fa-check-circle
@@ -30,7 +30,6 @@
               {% else %}fa-info-circle{% endif %}"></i>
             {{ message }}
           </div>
-        {% endfor %}
       </div>
     {% endif %}
   {% endwith %}

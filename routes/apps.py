@@ -45,8 +45,15 @@ def api_list_apps():
 @login_required
 def index():
     form = CreateApp()
-   
+    user_apps_count = UserApp.query.filter_by(user_id=current_user.id).count()
+    print(user_apps_count)
+    if user_apps_count >= 5:
+            flash("You have reached the maximum number of applications (5). It is impossible to create something new.", "warning")
+            return redirect(url_for('apps.dashboard'))
+
     if form.validate_on_submit():
+        # Проверяем количество приложений текущего пользователя
+        
         app_name = form.NewApp.data
         try:
             app_id = str(uuid.uuid4())[:8]
@@ -70,6 +77,7 @@ def index():
             flash(f'Error creating application: {e}', 'error')
 
     return render_template('create_app.html', form=form, username=current_user.username)
+
 
 
 # -------------------------

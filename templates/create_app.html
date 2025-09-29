@@ -11,9 +11,11 @@
       
       <div class="form-group mb-3">
         {{ form.NewApp(class="form-control form-control-lg") }}
-        {% for error in form.NewApp.errors %}
-          <div class="text-danger small mt-1">[{{ error }}]</div>
-        {% endfor %}
+        {% if errors %}
+          {% for error in [form.NewApp.errors[-1]] %}
+            <div class="text-danger small mt-1">[{{ error }}]</div>
+          {% endfor %}
+        {% endif %}
       </div>
       
       {{ form.submit(class="btn btn-primary w-100") }}
