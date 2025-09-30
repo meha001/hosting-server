@@ -7,7 +7,8 @@
 Сервер доступен по ссылке:  
  [nmhostserver.pythonanywhere.com](https://nmhostserver.pythonanywhere.com/)
 
-##Скриншоты
+## Скриншоты
+
 <img width="1293" height="743" alt="image" src="https://github.com/user-attachments/assets/8d31b349-cae5-4485-b7bf-20889496fac0" />
 
 
